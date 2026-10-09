@@ -1,0 +1,8 @@
+.spark-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.spark-band {
+  fill: var(--band);
+}

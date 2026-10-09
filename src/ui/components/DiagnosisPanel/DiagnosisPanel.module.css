@@ -1,0 +1,65 @@
+.problems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.problem {
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.problem:global(.st-bad) {
+  background: var(--bad-bg);
+}
+.problem:global(.st-warn) {
+  background: var(--warn-bg);
+}
+.problem summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.problem summary::-webkit-details-marker {
+  display: none;
+}
+.problem:global(.st-bad) :global(.dot) {
+  background: var(--bad);
+}
+.problem:global(.st-warn) :global(.dot) {
+  background: var(--warn);
+}
+.ptitle {
+  font-weight: 600;
+  flex: 1;
+}
+.conf {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+}
+.conf-likely {
+  color: var(--bad);
+}
+.conf-possible {
+  color: var(--muted);
+}
+.pbody {
+  padding: 0 12px 10px 28px;
+}
+.evidence {
+  margin: 0 0 6px;
+  padding-left: 16px;
+  font-size: 13px;
+}
+.pbody ol {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.disclaimer {
+  margin-bottom: 0;
+}

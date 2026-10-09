@@ -1,0 +1,182 @@
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --text: #1c1f24;
+  --muted: #69707d;
+  --border: #dde1e6;
+  --accent: #c3002f; /* Nissan red */
+  --ok: #1f8a4c;
+  --warn: #b7791f;
+  --bad: #c53030;
+  --ok-bg: #e7f5ec;
+  --warn-bg: #fdf4e3;
+  --bad-bg: #fdeaea;
+  --band: rgba(31, 138, 76, 0.12);
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111317;
+    --surface: #1a1d23;
+    --text: #e6e8eb;
+    --muted: #8b93a1;
+    --border: #2c313a;
+    --ok-bg: #12291c;
+    --warn-bg: #2e2412;
+    --bad-bg: #331616;
+    --band: rgba(72, 187, 120, 0.15);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+select {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+button:disabled,
+select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button.link {
+  border: none;
+  background: none;
+  color: var(--accent);
+  padding: 4px 6px;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 12px;
+}
+.ok-text {
+  color: var(--ok);
+}
+.warn-text {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.card h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.val {
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 600;
+}
+.unit {
+  color: var(--muted);
+  margin-left: 4px;
+  font-size: 12px;
+}
+.tag {
+  margin-left: 6px;
+  font-size: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: var(--border);
+  vertical-align: middle;
+}
+tr.st-ok .dot {
+  background: var(--ok);
+}
+tr.st-warn {
+  background: var(--warn-bg);
+}
+tr.st-warn .dot {
+  background: var(--warn);
+}
+tr.st-bad {
+  background: var(--bad-bg);
+}
+tr.st-bad .dot {
+  background: var(--bad);
+}
+
+.finding {
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.finding.st-warn {
+  background: var(--warn-bg);
+}
+.finding.st-bad {
+  background: var(--bad-bg);
+}
+
+.bits {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 6px 0;
+  flex-wrap: wrap;
+}
+.bits-label {
+  min-width: 150px;
+  font-size: 12px;
+}
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
+/* 008/009 additions */
+.count {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+/* 010 fuel */
+
+/* 011 diagnosis */

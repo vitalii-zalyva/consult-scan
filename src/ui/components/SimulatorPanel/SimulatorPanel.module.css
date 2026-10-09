@@ -1,0 +1,33 @@
+.sim .seg {
+  display: flex;
+  gap: 0;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.sim .seg button {
+  border-radius: 0;
+  margin-left: -1px;
+}
+.sim .seg button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.sim .seg button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.sim .seg button:global(.active) {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+}

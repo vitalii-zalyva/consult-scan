@@ -1,0 +1,1 @@
+export { DiagnosisPanel } from "./DiagnosisPanel";

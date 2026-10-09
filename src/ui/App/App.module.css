@@ -1,0 +1,106 @@
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.brand strong {
+  font-size: 18px;
+  border-left: 4px solid var(--accent);
+  padding-left: 8px;
+}
+.conn {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+button.rec {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+}
+
+.notice {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.status {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.state {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--border);
+}
+.state-streaming {
+  background: var(--ok);
+  color: #fff;
+}
+.state-error {
+  background: var(--bad);
+  color: #fff;
+}
+.cond {
+  font-weight: 600;
+}
+.msg {
+  overflow-wrap: anywhere;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+}
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tabs button {
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  padding: 8px 14px;
+}
+.tabs button:global(.active) {
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
