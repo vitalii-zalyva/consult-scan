@@ -27,6 +27,9 @@ export class ConsultSession {
   history: Sample[] = [];
   state: SessionState = "disconnected";
 
+  /** Set by a running procedure (power balance) so disconnect / unit switch stop it instead of waiting. */
+  cancelProcedure: (() => void) | null = null;
+
   private detected = new Map<UnitId, UnitDetection>();
   private queue: Promise<unknown> = Promise.resolve();
   private stream: StreamHandle | null = null;
@@ -109,6 +112,7 @@ export class ConsultSession {
   /** CU-101/CU-201: switch to another control unit and stream its data. */
   async selectUnit(unitId: UnitId): Promise<void> {
     if (unitId === this.unit) return;
+    this.cancelProcedure?.();
     const wasStreaming = this.streaming;
     if (wasStreaming) await this.stopStreaming();
     this.setState("busy");
@@ -175,12 +179,7 @@ export class ConsultSession {
           let rotate!: () => void;
           const pageDone = new Promise<void>((r) => (rotate = r));
           this.stream = await this.client.stream(page, (values, raw) => {
-            this.latest = { ...this.latest, ...values };
-            this.latestRaw = { ...this.latestRaw, ...raw };
-            const sample: Sample = { t: Date.now(), values: { ...this.latest } };
-            this.history.push(sample);
-            if (this.history.length > HISTORY_LIMIT) this.history.splice(0, this.history.length - HISTORY_LIMIT);
-            this.events.onSample?.(sample);
+            this.record(values, raw);
             if (!this.streaming || (pages.length > 1 && ++frames >= framesPerPage)) rotate();
           });
           if (!this.streaming) rotate();
@@ -196,6 +195,26 @@ export class ConsultSession {
         this.setState("error", errorMessage(err));
       }
     });
+  }
+
+  /** Merges a frame into the live state and history (also used by tests that stream themselves). */
+  record(values: ParamValues, raw: RawValues = {}): Sample {
+    this.latest = { ...this.latest, ...values };
+    this.latestRaw = { ...this.latestRaw, ...raw };
+    const sample: Sample = { t: Date.now(), values: { ...this.latest } };
+    this.history.push(sample);
+    if (this.history.length > HISTORY_LIMIT) this.history.splice(0, this.history.length - HISTORY_LIMIT);
+    this.events.onSample?.(sample);
+    return sample;
+  }
+
+  /** CY-206: run an ECU procedure with page streaming paused; streaming resumes afterwards. */
+  runExclusive<T>(op: (client: ConsultClient) => Promise<T>): Promise<T> {
+    return this.withStreamPaused(() => op(this.client));
+  }
+
+  get isStreaming(): boolean {
+    return this.streaming;
   }
 
   async stopStreaming(): Promise<void> {
@@ -225,6 +244,7 @@ export class ConsultSession {
   }
 
   async disconnect(): Promise<void> {
+    this.cancelProcedure?.();
     await this.stopStreaming().catch(() => undefined);
     await this.transport.close();
     this.setState("disconnected");

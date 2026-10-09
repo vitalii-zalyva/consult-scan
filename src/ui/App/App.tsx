@@ -8,6 +8,7 @@ import type { FuelSettings, TripState } from "@/analysis/fuel";
 import { addToTrip, calibrate, DEFAULT_FUEL_SETTINGS, emptyTrip } from "@/analysis/fuel";
 import { VQ30DE_RULES } from "@/analysis/reference-ranges";
 import { downloadText, timestampForFile, toCsv } from "@/logging/csv";
+import { cylinderStore } from "@/logging/cylinder-store";
 import type { FaultCodeReading } from "@/protocol/fault-codes";
 import type { SessionState } from "@/protocol/session";
 import { ConsultSession } from "@/protocol/session";
@@ -19,12 +20,14 @@ import { WebSerialTransport } from "@/transport/web-serial";
 import { WebUsbFtdiTransport } from "@/transport/webusb-ftdi";
 import {
   BitsPanel,
+  CompressionPanel,
   CoveragePanel,
   DiagnosisPanel,
   FaultCodesPanel,
   FuelPanel,
   Intro,
   LiveTable,
+  PowerBalancePanel,
   SimulatorPanel,
 } from "@/ui/components";
 import { createCx } from "@/ui/lib";
@@ -39,6 +42,7 @@ import {
   TRIP_SAVE_MS,
   UI_REFRESH_MS,
 } from "./constants";
+import { cylinderEvidence } from "./cylinderEvidence";
 import { loadJson, restoreDeepScan, saveJson } from "./storage";
 import type { Source } from "./types";
 
@@ -61,6 +65,13 @@ export function App() {
   const fuelSettingsRef = useRef(fuelSettings);
   const trip = useRef<TripState>({ ...loadJson(FUEL_TRIP_KEY, emptyTrip()), lastT: undefined });
   const lastTripSave = useRef(0);
+  const [cylinders, setCylinders] = useState(() =>
+    cylinderEvidence(
+      cylinderStore.powerBalance().find((r) => !r.dryRun),
+      cylinderStore.compression(),
+      cylinderStore.spec(),
+    ),
+  );
 
   const setFuelSettings = (s: FuelSettings) => {
     fuelSettingsRef.current = s;
@@ -171,7 +182,7 @@ export function App() {
   // DX-101: engine-only; codes shown are the engine ECU's while on the engine tab.
   const diagnosis =
     session && connected && isEngine
-      ? diagnose({ samples: session.history, latest: values, codes, fuel: fuelSettings })
+      ? diagnose({ samples: session.history, latest: values, codes, fuel: fuelSettings, cylinders })
       : null;
   const sim = session?.transport instanceof SimulatorTransport ? session.transport.ecu : null;
 
@@ -328,6 +339,23 @@ export function App() {
           </section>
         </aside>
       </main>
+
+      <section className={cx("cyl-section")}>
+        <h2 className={cx("section-title")}>{m.cyl.sectionTitle}</h2>
+        <div className={cx("cyl-grid")}>
+          {session && connected && isEngine && (
+            <PowerBalancePanel
+              session={session}
+              connected={connected}
+              isEngine={isEngine}
+              onResult={(r) => !r.dryRun && setCylinders((c) => ({ ...c, powerBalance: r }))}
+            />
+          )}
+          <CompressionPanel
+            onChange={(entries, spec) => setCylinders((c) => ({ ...cylinderEvidence(c.powerBalance, entries, spec) }))}
+          />
+        </div>
+      </section>
     </div>
   );
 }

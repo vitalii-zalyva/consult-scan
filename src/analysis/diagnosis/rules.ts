@@ -455,6 +455,39 @@ export const RULES: Rule[] = [
       }));
     },
   },
+  {
+    id: "DX-219",
+    needs: "cylinderTests",
+    run: ({ cylinders }, t) => {
+      const pb = cylinders?.powerBalance;
+      const usablePb = pb && !pb.dryRun && !pb.inconclusive && !pb.aborted ? pb : undefined;
+      const comp = cylinders?.compression;
+      if (!usablePb && !comp) return "waiting";
+      const weakPb = new Map((usablePb?.cylinders ?? []).filter((c) => c.status !== "ok").map((c) => [c.cylinder, c]));
+      const weakComp = new Map(
+        (comp?.evaluation.cylinders ?? []).filter((c) => c.status === "bad").map((c) => [c.cylinder, c]),
+      );
+      const all = [...new Set([...weakPb.keys(), ...weakComp.keys()])].sort((a, b) => a - b);
+      if (!all.length) return null;
+      return all.map((cyl): Problem => {
+        const p = weakPb.get(cyl);
+        const c = weakComp.get(cyl);
+        const evidence: string[] = [];
+        if (p && usablePb)
+          evidence.push(t.cylinder.powerBalance(usablePb.date.slice(0, 10), t.n(p.dropRpm, 0), t.n(p.dropPct, 1)));
+        if (c && comp && c.kpa !== null) evidence.push(t.cylinder.compression(comp.date.slice(0, 10), t.n(c.kpa, 0)));
+        return {
+          id: `DX-219-${cyl}`,
+          title: t.cylinder.title(cyl),
+          severity: p?.status === "bad" || c ? "bad" : "warn",
+          // CY-602: both methods agree → likely.
+          confidence: p && c ? "likely" : "possible",
+          evidence,
+          checks: c ? t.cylinder.checksCompression : t.cylinder.checksPowerBalance,
+        };
+      });
+    },
+  },
 ];
 
 export const RULE_COUNT = RULES.length;

@@ -13,6 +13,7 @@ export const CMD = {
   GO: 0xf0,
   STOP: 0x30,
   STOP_ACK: 0xcf,
+  ACTIVE_TEST: 0x0a,
   FRAME_START: 0xff,
   INVALID: 0xfe,
 } as const;
@@ -24,3 +25,10 @@ export const DEFAULT_TIMINGS: ConsultTimings = {
   frameTimeoutMs: 1000,
   quietMs: 150,
 };
+
+/** Frames/bytes tolerated after STOP before giving up on the CF acknowledgement (same bound as halt()). */
+export const MAX_TRAILING_BYTES_AFTER_STOP = 32;
+
+/** PLMS: active test register 0x88 = power balance, bit n = cylinder n+1 off. */
+export const POWER_BALANCE_REGISTER = 0x88;
+export const CYLINDERS = 6;

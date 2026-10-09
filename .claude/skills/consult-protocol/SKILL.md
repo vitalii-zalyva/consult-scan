@@ -26,7 +26,8 @@ Full reference: `docs/consult-protocol.md`. Authoritative behaviour: `specs/001-
 | `C1` | clear fault codes (needs user confirmation) | `3E` |
 | `F0` / `30` | go / stop | — / `CF` |
 | `C9 hi lo` | ROM/RAM byte read (max 8 per request) — not used, needs a spec | `36 hi lo` |
-| `0A tt dd` | active test — **forbidden** without an approved safety spec | — |
+| `0A 88 mm` | power balance (spec 012): `mm` = one cylinder bit, `00` = all firing. Only via `PowerBalanceRunner` | `F5 88 mm` |
+| `0A tt dd` (other `tt`) | other active tests — **forbidden** without an approved safety spec | — |
 
 Register `0xFE` echoes as `FE`, same as the invalid reply: treat a probe without a frame as unsupported (CP-503).
 

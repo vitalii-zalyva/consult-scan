@@ -5,10 +5,23 @@
  */
 import type { ParamValues } from "@/protocol/registers";
 
+import { CYLINDER_DROP_RPM, WEAK_CYLINDER_DROP_RPM } from "./constants";
 import type { EngineState } from "./types";
 
 export function createEngineState(coolant = 20): EngineState {
-  return { t: 0, scenario: "idle", faults: new Set(), rpm: 0, coolant, speed: 0, learn: 100 };
+  return {
+    t: 0,
+    scenario: "idle",
+    faults: new Set(),
+    rpm: 0,
+    coolant,
+    speed: 0,
+    learn: 100,
+    cutMask: 0,
+    cutSince: 0,
+    weakCylinder: null,
+    stallOnCut: false,
+  };
 }
 
 const approach = (value: number, target: number, rate: number) => value + (target - value) * Math.min(1, rate);
@@ -26,7 +39,7 @@ export function stepEngine(s: EngineState, dt: number, timeScale = 20): void {
       : s.scenario === "rev2000"
         ? 2000
         : 2400 + 300 * Math.sin(s.t / 3);
-  s.rpm = approach(s.rpm, rpmTarget, dt * 3);
+  s.rpm = approach(s.rpm, Math.max(0, rpmTarget - cutDrop(s)), dt * 3);
   s.speed = approach(s.speed, s.scenario === "drive" ? 70 + 10 * Math.sin(s.t / 5) : 0, dt * 0.8);
 
   const coolantTarget = s.faults.has("overheat") ? 118 : running ? 88 : 20;
@@ -34,6 +47,15 @@ export function stepEngine(s: EngineState, dt: number, timeScale = 20): void {
 
   const learnTarget = s.faults.has("vacuum-leak") ? 118 : 100;
   s.learn = approach(s.learn, learnTarget, dt * 0.05);
+}
+
+export function cutDrop(s: EngineState): number {
+  if (!s.cutMask || s.scenario === "off") return 0;
+  if (s.stallOnCut) return 10_000;
+  const cyl = Math.log2(s.cutMask) + 1;
+  const drop = cyl === s.weakCylinder ? WEAK_CYLINDER_DROP_RPM : CYLINDER_DROP_RPM;
+  const recovery = Math.min(0.5, ((s.t - s.cutSince) / 3) * 0.5);
+  return drop * (1 - recovery);
 }
 
 export function engineValues(s: EngineState): ParamValues {
@@ -79,7 +101,9 @@ export function engineValues(s: EngineState): ParamValues {
     injLh: inj + noise(0.04),
     injRh: inj + noise(0.04),
     timing: !running ? 0 : s.rpm < 1000 ? 15 : Math.min(38, 15 + (s.rpm - 800) / 80),
-    aac: !running ? 0 : warm ? 30 + leak * -12 + noise(1) : 45,
+    aac: !running
+      ? 0
+      : (warm ? 30 + leak * -12 + noise(1) : 45) + (s.cutMask ? Math.min(10, (s.t - s.cutSince) * 4) : 0),
     afAlphaLh: alphaBase + noise(2),
     afAlphaRh: alphaBase + noise(2),
     afLearnLh: s.learn,

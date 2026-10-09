@@ -29,7 +29,8 @@ host: 30                  ECU: [frames in flight] CF stop
 | `30` | `CF` | stop |
 | invalid | `FE` | |
 | `C9 hi lo` | `36 hi lo` | ROM/RAM byte read, up to 8 per request (not used by the app) |
-| `0A tt dd` | | active test — changes engine behaviour, **not used** |
+| `0A 88 mm` | `F5 88 mm` | power balance: bit n = cylinder n+1 off, `00` = all firing (spec 012, safety interlocks) |
+| `0A tt dd` (other) | | other active tests — change engine behaviour, **not used** |
 
 Control unit select (third init byte, PLMS): `EF` engine, `EA` automatic transmission, `DF` auto air-con, `E4` HICAS.
 

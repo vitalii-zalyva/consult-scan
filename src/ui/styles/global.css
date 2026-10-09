@@ -55,6 +55,11 @@ select:disabled {
   opacity: 0.5;
   cursor: default;
 }
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 button.link {
   border: none;
   background: none;
@@ -98,6 +103,31 @@ button.link {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.data th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+table.data td {
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+table.data tr:last-child td {
+  border-bottom: none;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
 }
 .val {
   font-variant-numeric: tabular-nums;
@@ -165,6 +195,18 @@ tr.st-bad .dot {
   min-width: 150px;
   font-size: 12px;
 }
+.chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+}
 code {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 12px;
@@ -178,5 +220,62 @@ code {
 }
 
 /* 010 fuel */
+.settings {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+.setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.setting input {
+  width: 90px;
+  font: inherit;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+}
 
 /* 011 diagnosis */
+
+/* 012 cylinder health */
+.pb-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 8px 0;
+}
+.comp-form {
+  display: grid;
+  gap: 6px;
+}
+.comp-readings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.comp-readings label {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+}
+.comp-readings input,
+.comp-form select,
+.comp-form input[type="date"],
+.pb-controls select,
+.pb-controls input {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  min-width: 0;
+}

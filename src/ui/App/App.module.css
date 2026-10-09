@@ -28,11 +28,6 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
 button.rec {
   background: var(--bad);
   border-color: var(--bad);
@@ -103,4 +98,19 @@ button.rec {
 .tabs button:global(.active) {
   border-bottom-color: var(--accent);
   font-weight: 600;
+}
+.cyl-section {
+  margin-top: 8px;
+}
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.cyl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
 }

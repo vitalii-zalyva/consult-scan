@@ -1,6 +1,8 @@
 // Spec: specs/011-diagnosis/spec.md. Thresholds are heuristics, not FSM values.
+import type { CompressionEvaluation } from "@/analysis/compression";
 import type { Sample } from "@/analysis/evaluate";
 import type { FuelSettings } from "@/analysis/fuel";
+import type { PowerBalanceResult } from "@/analysis/power-balance";
 import type { FaultCodeReading } from "@/protocol/fault-codes";
 import type { ParamValues } from "@/protocol/registers";
 
@@ -32,6 +34,11 @@ export interface DiagnosisContext {
   latest: ParamValues;
   codes: readonly FaultCodeReading[] | null;
   fuel?: FuelSettings;
+  /** CY-601: latest stored cylinder-health results. */
+  cylinders?: {
+    powerBalance?: PowerBalanceResult;
+    compression?: { date: string; evaluation: CompressionEvaluation };
+  };
 }
 
 export interface Diagnosis {
@@ -104,5 +111,12 @@ export interface DxText {
     present: string;
     past: (n: number) => string;
     fallback: string;
+  };
+  cylinder: {
+    title: (cyl: number) => string;
+    powerBalance: (date: string, drop: string, pct: string) => string;
+    compression: (date: string, kpa: string) => string;
+    checksPowerBalance: string[];
+    checksCompression: string[];
   };
 }

@@ -1,5 +1,7 @@
 // Spec: specs/004-live-dashboard/spec.md (LD-4xx)
+import type { CompressionReason } from "@/analysis/compression";
 import type { Condition } from "@/analysis/conditions";
+import type { AbortReason, Interlock } from "@/analysis/power-balance";
 import type { SessionState } from "@/protocol/session";
 import type { InjectedFault, Scenario } from "@/simulator/engine-model";
 
@@ -101,6 +103,10 @@ export interface Messages {
   faults: Record<InjectedFault, string>;
   storeDtc: string;
   coldRestart: string;
+  simWeakCylinder: string;
+  simNone: string;
+  simIgnoreRestore: string;
+  simStallOnCut: string;
   // fuel
   fuel: {
     title: string;
@@ -132,6 +138,65 @@ export interface Messages {
     likely: string;
     possible: string;
     disclaimer: string;
+  };
+  // cylinder health (spec 012)
+  cyl: {
+    sectionTitle: string;
+    pbTitle: string;
+    pbIntro: string;
+    start: string;
+    stop: string;
+    dryRun: string;
+    dryRunHint: string;
+    rounds: string;
+    odometer: string;
+    confirm: (dryRun: boolean) => string;
+    interlock: Record<Interlock, string>;
+    notInPN: string;
+    phase: {
+      baseline: (c: number, r: number) => string;
+      cut: (c: number, r: number) => string;
+      recover: (c: number, r: number) => string;
+      restoring: string;
+      done: string;
+    };
+    abort: Record<AbortReason, string>;
+    restoreWarning: string;
+    inconclusive: string;
+    cylinder: (n: number) => string;
+    dropRpm: string;
+    dropPct: string;
+    aacRise: string;
+    status: Record<"ok" | "warn" | "bad", string>;
+    resultHeader: (date: string, mode: string) => string;
+    dryRunDone: string;
+    weak: (cyls: string) => string;
+    allOk: string;
+    nextSteps: string;
+    history: string;
+    exportCsv: string;
+    noResults: string;
+    compTitle: string;
+    compIntro: string;
+    date: string;
+    warm: string;
+    wet: string;
+    pressureUnit: string;
+    cranking: string;
+    notes: string;
+    save: string;
+    remove: string;
+    invalid: string;
+    specTitle: string;
+    specStandard: string;
+    specMinimum: string;
+    specMaxDiff: string;
+    specNote: string;
+    spread: (v: string) => string;
+    reason: Record<CompressionReason, string>;
+    hint: { rings: (c: number) => string; valves: (c: number) => string; headGasket: (a: number, b: number) => string };
+    dryLabel: string;
+    wetLabel: string;
   };
   // units of measure
   unit: Record<string, string>;

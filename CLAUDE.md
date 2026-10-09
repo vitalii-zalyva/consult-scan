@@ -58,13 +58,17 @@ Layering: `ui → protocol/session → protocol/consult → transport`. Protocol
 
 - Only **read** commands are allowed by default: init `FF FF <unit>` (EF engine, EA A/T, DF climate, E4 HICAS), `D0`, `D1`, `5A`, `F0`, `30`.
 - `C1` (clear codes) only behind an explicit user confirmation (FC-201).
-- **Active tests (`0A`) and anything else that changes ECU behaviour (fuel cut, timing, AAC override, self-learn clear)
-  are out of scope** unless a spec explicitly approved by the user says otherwise. ROM read (`C9`) also needs its own spec.
+- **One active test is approved:** power balance `0A 88 <single cylinder bit | 00>` under spec 012, only via
+  `PowerBalanceRunner` with its interlocks (warm idle, stationary, confirmation, ≤ 4 s cuts, abort + restore on every
+  path). Masks are validated in `assertPowerBalanceMask`; never weaken that check or call the client methods directly from UI.
+- **All other active tests (`0A` + any other register) and anything else that changes ECU behaviour (fuel %, timing,
+  AAC override, fuel pump, self-learn clear) are out of scope** unless a separate spec approved by the user says otherwise.
+  ROM read (`C9`) also needs its own spec.
 - Never present unverified reference ranges as authoritative: keep `verified: false` until checked against the FSM.
 
 ## Guardrails (Claude Code hooks in `.claude/settings.json`)
 
-- `ecu-guard` (before every edit): blocks ROM read (`C9`), any active test (`0A`) — none is approved, and `CMD.CLEAR_FAULT_CODES` or raw
+- `ecu-guard` (before every edit): blocks ROM read (`C9`), cylinder cuts outside `PowerBalanceRunner` (spec 012), removing `assertPowerBalanceMask`, and `CMD.CLEAR_FAULT_CODES` or raw
   `transport.write` outside the protocol client, transports and simulator.
 - `post-edit-check` (after every edit): Prettier, ESLint on the file, project typecheck; failures go back to Claude.
 - `stop-tests` (end of turn): tests related to the uncommitted changes must pass.

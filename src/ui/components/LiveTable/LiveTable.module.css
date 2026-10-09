@@ -1,27 +1,3 @@
-table.data {
-  width: 100%;
-  border-collapse: collapse;
-}
-table.data th {
-  text-align: left;
-  font-weight: 500;
-  color: var(--muted);
-  font-size: 12px;
-  padding: 4px 6px;
-  border-bottom: 1px solid var(--border);
-}
-table.data td {
-  padding: 6px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-table.data tr:last-child td {
-  border-bottom: none;
-}
-.num {
-  text-align: right;
-  white-space: nowrap;
-}
 .pname {
   font-weight: 500;
 }

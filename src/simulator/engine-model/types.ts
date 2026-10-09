@@ -11,4 +11,10 @@ export interface EngineState {
   coolant: number;
   speed: number;
   learn: number;
+  /** CY-701: power-balance cut (bit n = cylinder n+1 off) and when it started (model time, s). */
+  cutMask: number;
+  cutSince: number;
+  /** CY-702: simulated weak cylinder (1–6) and stall-on-cut fault. */
+  weakCylinder: number | null;
+  stallOnCut: boolean;
 }

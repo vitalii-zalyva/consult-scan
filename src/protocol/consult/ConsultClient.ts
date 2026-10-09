@@ -17,9 +17,10 @@ import { TimeoutError } from "@/transport/errors";
 import type { Transport } from "@/transport/types";
 
 import { expectedEcho, hex, registerCommand } from "./commands";
-import { CMD, DEFAULT_TIMINGS } from "./constants";
+import { CMD, DEFAULT_TIMINGS, MAX_TRAILING_BYTES_AFTER_STOP, POWER_BALANCE_REGISTER } from "./constants";
 import { ConsultError, UnsupportedRegisterError } from "./errors";
 import { formatPartNumber } from "./partNumber";
+import { assertPowerBalanceMask } from "./powerBalanceMask";
 import type { ConsultTimings, StreamHandle } from "./types";
 
 /**
@@ -130,18 +131,65 @@ export class ConsultClient {
     onFrame: (values: ParamValues, raw: RawValues) => void,
   ): Promise<StreamHandle> {
     await this.command(registerCommand(params), 1);
+    return this.readStream(params, onFrame);
+  }
+
+  /**
+   * CY-103 (preferred): cut one cylinder and stream params in one request:
+   * `0A 88 <mask> 5A rr … F0`. Spec: specs/012-cylinder-health.
+   */
+  async powerBalanceStream(
+    mask: number,
+    params: readonly ParamDef[],
+    onFrame: (values: ParamValues, raw: RawValues) => void,
+  ): Promise<StreamHandle> {
+    assertPowerBalanceMask(mask);
+    const regs = registerCommand(params);
+    await this.command([CMD.ACTIVE_TEST, POWER_BALANCE_REGISTER, mask, ...regs], 0, [
+      ~CMD.ACTIVE_TEST & 0xff,
+      POWER_BALANCE_REGISTER,
+      mask,
+      ...expectedEcho(regs, 1),
+    ]);
+    return this.readStream(params, onFrame);
+  }
+
+  /**
+   * CY-101/102 (fallback path and restore): `0A 88 <mask> F0`, then stop.
+   * mask 0 restores all cylinders.
+   */
+  async setPowerBalance(mask: number): Promise<void> {
+    assertPowerBalanceMask(mask);
+    await this.command([CMD.ACTIVE_TEST, POWER_BALANCE_REGISTER, mask], 0, [
+      ~CMD.ACTIVE_TEST & 0xff,
+      POWER_BALANCE_REGISTER,
+      mask,
+    ]);
+    await this.halt();
+  }
+
+  private async readStream(
+    params: readonly ParamDef[],
+    onFrame: (values: ParamValues, raw: RawValues) => void,
+  ): Promise<StreamHandle> {
     let stopSent: Promise<void> | null = null;
+    const n = params.reduce((a, p) => a + p.registers.length, 0);
 
     // Single reader: frames until stop is requested, then frames-in-flight until CF.
+    // After STOP the wait is bounded: an ECU that keeps streaming must not hang the caller (CY-102 restore path).
+    let trailing = 0;
     const done = (async () => {
       for (;;) {
         const [b] = await this.transport.read(1, this.timings.frameTimeoutMs);
         if (stopSent && b === CMD.STOP_ACK) return;
+        if (stopSent && ++trailing > MAX_TRAILING_BYTES_AFTER_STOP)
+          throw new ConsultError("ECU did not acknowledge stop (0xCF)");
         if (b !== CMD.FRAME_START) continue;
         const [len] = await this.transport.read(1, this.timings.byteTimeoutMs);
         const frame = len ? await this.transport.read(len, this.timings.byteTimeoutMs + len * 2) : new Uint8Array();
         if (!stopSent) {
-          const decoded = decodeFrame(params, frame);
+          // CY-103: with an active test in the request the ECU may prepend extra bytes; registers come last.
+          const decoded = decodeFrame(params, frame.length > n ? frame.subarray(frame.length - n) : frame);
           onFrame(decoded.values, decoded.raw);
         }
       }
@@ -158,8 +206,8 @@ export class ConsultClient {
   }
 
   /** Sends a command, verifies the echo, then sends GO. */
-  private async command(request: number[], dataWidth = 0): Promise<void> {
-    const expected = expectedEcho(request, dataWidth);
+  private async command(request: number[], dataWidth = 0, expectedOverride?: number[]): Promise<void> {
+    const expected = expectedOverride ?? expectedEcho(request, dataWidth);
     this.transport.drain();
     await this.transport.write(Uint8Array.from(request));
     // Read byte-by-byte: an unsupported register is answered with a single FE.
@@ -203,6 +251,11 @@ export class ConsultClient {
       if (len) await this.transport.read(len, this.timings.byteTimeoutMs + len * 2);
     }
     throw new ConsultError("ECU did not acknowledge stop (0xCF)");
+  }
+
+  /** Stops any output and waits for the line to go quiet (used before safety-critical commands). */
+  async resync(): Promise<void> {
+    await this.recover();
   }
 
   /** Best-effort return to idle after an error. */

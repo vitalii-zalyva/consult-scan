@@ -16,6 +16,7 @@ Workflow: `.claude/skills/spec-driven-development/SKILL.md`. Statuses: draft →
 | 009 | [Other control units (A/T, climate)](009-other-control-units/spec.md) | CU | implemented |
 | 010 | [Fuel consumption (derived)](010-fuel-consumption/spec.md) | FU | implemented (injector size unverified) |
 | 011 | [Possible problems (diagnosis hints)](011-diagnosis/spec.md) | DX | implemented (thresholds untuned) |
+| 012 | [Cylinder health: power balance + compression log](012-cylinder-health/spec.md) | CY | implemented — first car run must be the dry run |
 
 Nothing is `verified-on-car` yet: the first real-car session is pending (see `.claude/skills/car-test-session/SKILL.md`).
 
@@ -27,4 +28,4 @@ Nothing is `verified-on-car` yet: the first real-car session is pending (see `.c
 - Confirm bit positions (008) and A/T presence (009) after a car session
 - ABS / airbag units: select bytes unknown — wider select-byte scan needs a spec
 - ROM read (`C9`) for ECU identification — read-only but large; needs a spec
-- Active tests — **requires a safety-reviewed spec**
+- Other active tests (fuel %, timing, AAC, fuel pump, self-learn clear) — **require their own safety-reviewed spec**

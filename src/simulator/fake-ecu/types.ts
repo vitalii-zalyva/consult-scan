@@ -2,7 +2,11 @@
 import type { UnitId } from "@/protocol/units";
 
 export type Pending =
-  { kind: "registers"; registers: number[] } | { kind: "part" } | { kind: "dtc" } | { kind: "clear" };
+  | { kind: "registers"; registers: number[]; cutMask?: number }
+  | { kind: "part" }
+  | { kind: "dtc" }
+  | { kind: "clear" }
+  | { kind: "active"; cutMask: number };
 
 export interface FakeEcuOptions {
   /** Interval between stream frames, ms. A real ECU is roughly baud-limited (~20-60 ms). */

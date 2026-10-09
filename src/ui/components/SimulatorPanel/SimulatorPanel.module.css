@@ -19,15 +19,3 @@
   color: #fff;
   border-color: var(--accent);
 }
-.chips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.chip {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  font-size: 13px;
-}

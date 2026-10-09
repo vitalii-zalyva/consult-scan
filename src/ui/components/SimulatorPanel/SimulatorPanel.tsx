@@ -46,6 +46,49 @@ export function SimulatorPanel({ ecu }: { ecu: FakeEcu }) {
             {m.faults[id]}
           </label>
         ))}
+        <label className={cx("chip")}>
+          {m.simWeakCylinder}
+          <select
+            name="sim-weak-cylinder"
+            value={ecu.engine.weakCylinder ?? 0}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              ecu.engine.weakCylinder = n || null;
+              refresh();
+            }}
+          >
+            <option value={0}>{m.simNone}</option>
+            {[1, 2, 3, 4, 5, 6].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={cx("chip")}>
+          <input
+            name="sim-ignore-restore"
+            type="checkbox"
+            checked={ecu.ignoreRestore}
+            onChange={(e) => {
+              ecu.ignoreRestore = e.target.checked;
+              refresh();
+            }}
+          />
+          {m.simIgnoreRestore}
+        </label>
+        <label className={cx("chip")}>
+          <input
+            name="sim-stall-on-cut"
+            type="checkbox"
+            checked={ecu.engine.stallOnCut}
+            onChange={(e) => {
+              ecu.engine.stallOnCut = e.target.checked;
+              refresh();
+            }}
+          />
+          {m.simStallOnCut}
+        </label>
         <button
           className={cx("link")}
           onClick={() => {

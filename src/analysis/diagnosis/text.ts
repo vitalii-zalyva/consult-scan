@@ -27,6 +27,7 @@ const en: DxText = {
     "DX-216": "Sensor circuits",
     "DX-217": "Idle fuel consumption",
     "DX-218": "Stored fault codes",
+    "DX-219": "Cylinder health (power balance / compression)",
   },
   needs: {
     idle: "warm idle for 10 s",
@@ -40,6 +41,7 @@ const en: DxText = {
     battery: "battery voltage for 5 s",
     running: "engine running",
     codes: "fault codes read",
+    cylinderTests: "a power balance test or a compression entry",
   },
   leak: {
     title: "Possible intake air (vacuum) leak",
@@ -210,6 +212,23 @@ const en: DxText = {
     present: "Present now.",
     past: (n) => `Last seen ${n} engine start(s) ago (intermittent or already fixed).`,
     fallback: "Follow the FSM EC diagnostic procedure for this code.",
+  },
+  cylinder: {
+    title: (c) => `Cylinder ${c} is weak`,
+    powerBalance: (d, drop, pct) =>
+      `Power balance ${d}: cutting it lowers rpm by only ${drop} rpm (${pct} %), much less than the other cylinders.`,
+    compression: (d, kpa) => `Compression ${d}: ${kpa} kPa — below minimum or too far below the other cylinders.`,
+    checksPowerBalance: [
+      "Swap its ignition coil with a neighbouring cylinder and repeat the test — if the weak cylinder moves, it is the coil.",
+      "Check the spark plug (wear, oil fouling).",
+      "Check the injector (resistance, spray / leak test).",
+      "If ignition and injector are fine, do a compression test.",
+    ],
+    checksCompression: [
+      "Repeat as a wet test (a little oil in the cylinder): a rise points to rings, no change to valves.",
+      "Leak-down test to locate the leak (intake, exhaust, crankcase, cooling system).",
+      "Two neighbouring low cylinders on the same bank → head gasket between them.",
+    ],
   },
 };
 

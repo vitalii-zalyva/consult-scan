@@ -1,0 +1,62 @@
+.interlocks {
+  margin: 6px 0;
+  padding-left: 18px;
+  color: var(--warn);
+}
+.pb-phase {
+  font-weight: 600;
+}
+.danger-box {
+  background: var(--bad-bg);
+  border: 1px solid var(--bad);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-weight: 600;
+}
+button.danger-solid {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+}
+.bars {
+  margin: 8px 0;
+  display: grid;
+  gap: 4px;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+.bar-track {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+.bar-row:global(.st-warn) .bar-fill {
+  background: var(--warn);
+}
+.bar-row:global(.st-bad) .bar-fill {
+  background: var(--bad);
+}
+.bar-row:global(.st-na) .bar-fill {
+  background: var(--accent);
+}
+.bar-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pb-history ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}

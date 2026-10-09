@@ -16,6 +16,12 @@ import type { FakeEcuOptions, Pending } from "./types";
 export class FakeEcu {
   readonly engine: EngineState = createEngineState();
   faultCodes: Array<[number, number]>;
+  /** CY-702: the ECU acknowledges a restore but keeps the cylinder cut. */
+  ignoreRestore = false;
+  /** Rejects `0A` combined with `5A` (forces the CY-103 fallback path). */
+  rejectCombinedActiveTest = false;
+  /** Fault: ignores STOP (`30`) and keeps streaming without CF — tests bounded waits. */
+  ignoreStop = false;
   atFaultCodes: Array<[number, number]> = [];
   private readonly supported: ReadonlySet<number>;
   private readonly frameIntervalMs: number;
@@ -24,6 +30,8 @@ export class FakeEcu {
   private unit: UnitId | null = null;
   private initWindow: number[] = [];
   private expectRegister = false;
+  /** Bytes still expected after `0A` (register, data). */
+  private activeTestBytes: number[] | null = null;
   private pending: Pending | null = null;
   private streamTimer: ReturnType<typeof setInterval> | null = null;
   private engineTimer: ReturnType<typeof setInterval> | null = null;
@@ -82,12 +90,39 @@ export class FakeEcu {
     }
     if (!this.unit) return;
 
+    if (this.activeTestBytes) {
+      this.activeTestBytes.push(b);
+      if (this.activeTestBytes.length === 1) {
+        // CY-104: only the power-balance register exists in this simulator.
+        if (b !== 0x88 || this.unit !== "engine") {
+          this.activeTestBytes = null;
+          this.emit(Uint8Array.of(CMD.INVALID));
+          return;
+        }
+        this.emit(Uint8Array.of(b));
+        return;
+      }
+      const mask = b;
+      this.activeTestBytes = null;
+      this.pending = { kind: "active", cutMask: mask };
+      this.emit(Uint8Array.of(b));
+      return;
+    }
+
     if (this.expectRegister) {
       this.expectRegister = false;
       if (!this.registersFor(this.unit).has(b)) {
         this.emit(Uint8Array.of(CMD.INVALID));
         this.pending = null;
         return;
+      }
+      if (this.pending?.kind === "active") {
+        if (this.rejectCombinedActiveTest) {
+          this.pending = null;
+          this.emit(Uint8Array.of(CMD.INVALID));
+          return;
+        }
+        this.pending = { kind: "registers", registers: [], cutMask: this.pending.cutMask };
       }
       if (this.pending?.kind !== "registers") this.pending = { kind: "registers", registers: [] };
       this.pending.registers.push(b);
@@ -99,6 +134,10 @@ export class FakeEcu {
       case CMD.READ_REGISTER:
         this.emit(Uint8Array.of(~b & 0xff));
         this.expectRegister = true;
+        return;
+      case CMD.ACTIVE_TEST:
+        this.emit(Uint8Array.of(~b & 0xff));
+        this.activeTestBytes = [];
         return;
       case CMD.ECU_PART_NUMBER:
         this.pending = { kind: "part" };
@@ -116,6 +155,7 @@ export class FakeEcu {
         this.go();
         return;
       case CMD.STOP:
+        if (this.ignoreStop) return;
         this.stopStream();
         this.pending = null;
         this.emit(Uint8Array.of(CMD.STOP_ACK));
@@ -142,6 +182,11 @@ export class FakeEcu {
       if (this.unit === "engine") this.faultCodes = [];
       return;
     }
+    if (p.kind === "active" || (p.kind === "registers" && p.cutMask !== undefined)) {
+      // CY-701: the cut persists until explicitly restored or the ECU is re-initialised/powered.
+      this.applyCut(p.cutMask!);
+      if (p.kind === "active") return;
+    }
     const codes = this.unit === "at" ? this.atFaultCodes : this.faultCodes;
     const frame = (): number[] => {
       if (p.kind === "part") return SAMPLE_PART_NUMBER_FRAME;
@@ -156,6 +201,12 @@ export class FakeEcu {
     this.stopStream();
     send();
     this.streamTimer = setInterval(send, this.frameIntervalMs);
+  }
+
+  private applyCut(mask: number): void {
+    if (mask === 0 && this.ignoreRestore) return;
+    if (mask !== this.engine.cutMask) this.engine.cutSince = this.engine.t;
+    this.engine.cutMask = mask;
   }
 
   private stopStream(): void {
