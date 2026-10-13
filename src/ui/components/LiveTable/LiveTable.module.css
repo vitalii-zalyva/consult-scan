@@ -23,6 +23,9 @@
     display: none;
   }
 }
+.tag-suspect {
+  border-style: dashed;
+}
 tr:global(.st-warn) .expected {
   color: var(--warn);
 }

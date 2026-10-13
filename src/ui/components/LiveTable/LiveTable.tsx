@@ -12,8 +12,17 @@ import type { LiveTableProps } from "./types";
 
 const cx = createCx(styles);
 
-/** LD-201..204, XD-102: grouped live values with raw bytes, expected range and trend. */
-export function LiveTable({ params, values, raw, evaluations, condition, history }: LiveTableProps) {
+/** LD-201..204, XD-102, RC-103..104: grouped live values with raw bytes, expected range and trend. */
+export function LiveTable({
+  params,
+  values,
+  raw,
+  evaluations,
+  condition,
+  history,
+  rules = VQ30DE_RULES,
+  suspect,
+}: LiveTableProps) {
   const note = (r: ReferenceRule) => r.note;
   const range = (r: ReferenceRule) =>
     `${fmt(r.range.min, Number.isInteger(r.range.min) ? 0 : 2)}–${fmt(r.range.max, Number.isInteger(r.range.max) ? 0 : 2)}`;
@@ -40,21 +49,32 @@ export function LiveTable({ params, values, raw, evaluations, condition, history
                 {rows.map((p) => {
                   const v = values[p.id];
                   const ev = evaluations[p.id];
-                  const rule = rulesFor(p.id, condition, VQ30DE_RULES).at(-1);
+                  const rule = rulesFor(p.id, condition, rules).at(-1);
+                  const sus = suspect?.get(p.id);
                   const numeric = !p.kind || p.kind === "value";
                   const failing = ev?.failing ?? [];
                   const tooltip = (failing.length ? failing : (ev?.applied ?? [])).map(note).join("; ");
                   return (
-                    <tr key={p.id} className={cx(`st-${ev?.status ?? "na"}`)} title={tooltip || undefined}>
+                    <tr
+                      key={p.id}
+                      className={cx(sus ? "st-suspect" : `st-${ev?.status ?? "na"}`)}
+                      title={tooltip || undefined}
+                    >
                       <td>
                         <div className={cx("pname")}>{p.label}</div>
                         <div className={cx("fsm")}>
                           {p.fsmName} · {m.reg}{" "}
                           {p.registers.map((r) => `0x${r.toString(16).padStart(2, "0").toUpperCase()}`).join("/")}
-                          {!p.verified && (
-                            <span className={cx("tag")} title={m.unverifiedTitle}>
-                              {m.unverified}
+                          {sus ? (
+                            <span className={cx("tag tag-suspect")} title={`${m.suspectTitle} ${sus.reason}`}>
+                              {m.suspect}
                             </span>
+                          ) : (
+                            !p.verified && (
+                              <span className={cx("tag")} title={m.unverifiedTitle}>
+                                {m.unverified}
+                              </span>
+                            )
                           )}
                         </div>
                       </td>

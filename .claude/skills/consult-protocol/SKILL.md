@@ -22,7 +22,7 @@ Full reference: `docs/consult-protocol.md`. Authoritative behaviour: `specs/001-
 |---|---|---|
 | `5A rr` | add register `rr` to the stream | `A5 rr` |
 | `D0` | ECU part number (22-byte frame, ASCII suffix in bytes 17–21) | `2F` |
-| `D1` | fault codes, pairs `[code, startsSince]`, code is decimal of byte, 55 = none | `2E` |
+| `D1` | fault codes, pairs `[code, startsSince]`, code = byte as two hex digits (0x12 → 12, FC-101), 0x55 = none | `2E` |
 | `C1` | clear fault codes (needs user confirmation) | `3E` |
 | `F0` / `30` | go / stop | — / `CF` |
 | `C9 hi lo` | ROM/RAM byte read (max 8 per request) — not used, needs a spec | `36 hi lo` |

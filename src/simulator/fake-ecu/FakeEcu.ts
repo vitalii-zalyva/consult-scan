@@ -3,7 +3,7 @@
  * Spec: specs/003-ecu-simulator/spec.md (SIM-1xx), 008 (deep scan), 009 (control units)
  */
 import { CMD } from "@/protocol/consult";
-import { NO_MALFUNCTION } from "@/protocol/fault-codes";
+import { encodeFaultCode, NO_MALFUNCTION } from "@/protocol/fault-codes";
 import type { UnitId } from "@/protocol/units";
 import { UNIT_LIST, UNITS } from "@/protocol/units";
 import type { EngineState } from "@/simulator/engine-model";
@@ -190,7 +190,9 @@ export class FakeEcu {
     const codes = this.unit === "at" ? this.atFaultCodes : this.faultCodes;
     const frame = (): number[] => {
       if (p.kind === "part") return SAMPLE_PART_NUMBER_FRAME;
-      if (p.kind === "dtc") return codes.length ? codes.flat() : [NO_MALFUNCTION, 0];
+      // FC-101: code numbers go on the wire as hex digits.
+      if (p.kind === "dtc")
+        return codes.length ? codes.flatMap(([c, n]) => [encodeFaultCode(c), n]) : [encodeFaultCode(NO_MALFUNCTION), 0];
       const snap = this.snapshot();
       return p.registers.map((r) => snap.get(r) ?? 0);
     };

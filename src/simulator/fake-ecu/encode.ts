@@ -2,10 +2,11 @@
 import type { ParamDef, ParamValues } from "@/protocol/registers";
 
 /**
- * Inverts a linear decoder: raw = (value - decode(0)) / step.
- * All decoders in the register maps are linear in the raw integer.
+ * Inverts a decoder: the param's own `encode` when it has one, else the linear
+ * inverse raw = (value - decode(0)) / step.
  */
 export function encodeParam(p: ParamDef, value: number): number[] {
+  if (p.encode) return p.encode(value);
   const n = p.registers.length;
   const zero = p.decode(new Array<number>(n).fill(0));
   const one = p.decode(n === 1 ? [1] : [...new Array<number>(n - 1).fill(0), 1]);

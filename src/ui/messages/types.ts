@@ -63,6 +63,9 @@ export interface Messages {
   colTrend: string;
   unverified: string;
   unverifiedTitle: string;
+  /** RC-104, RC-301 */
+  suspect: string;
+  suspectTitle: string;
   rawTitle: string;
   reg: string;
   on: string;
@@ -112,7 +115,6 @@ export interface Messages {
     title: string;
     calculated: string;
     calculatedTitle: string;
-    mafCheck: (lh: string, diff: string) => string;
     implausible: string;
     duration: (h: number, min: number) => string;
     resetTrip: string;

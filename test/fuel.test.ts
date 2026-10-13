@@ -37,10 +37,6 @@ describe("FU-1xx: instantaneous flow", () => {
     expect(fuelRate({ rpm: 0, injLh: 3, battery: 12.5 }).litresPerHour).toBe(0);
   });
 
-  it("FU-105: MAF cross-check — 3.69 g/s ≈ 1.21 L/h", () => {
-    expect(fuelRate({ rpm: 700, injLh: 3.1, mafGs: 3.69 }).mafLitresPerHour).toBeCloseTo(1.213, 2);
-  });
-
   it("FU-106: L/100 km only when moving", () => {
     expect(fuelRate({ rpm: 700, injLh: 3.1, speed: 3 }).litresPer100km).toBeUndefined();
     const r = fuelRate({ rpm: 2400, injLh: 4.03, battery: 14, speed: 70 });
@@ -85,11 +81,7 @@ function warm(scenario: Scenario) {
   return engineValues(s);
 }
 
-describe("FU-501: simulator injector and MAF agree", () => {
-  it.each(["idle", "rev2000", "drive"] as const)("%s within ±10 %%", (scenario) => {
-    const r = fuelRate(warm(scenario));
-    expect(Math.abs(r.mafLitresPerHour! - r.litresPerHour) / r.litresPerHour).toBeLessThan(0.1);
-  });
+describe("FU-501: simulator fuel rate", () => {
   it("warm idle is plausible (0.5–2.5 L/h)", () => {
     const lh = fuelRate(warm("idle")).litresPerHour;
     expect(lh).toBeGreaterThan(0.5);
@@ -101,7 +93,7 @@ describe("FU-401: fuel panel render", () => {
   it("shows L/h, trip and the calculated tag", () => {
     const html = renderToStaticMarkup(
       createElement(FuelPanel, {
-        values: { rpm: 700, injLh: 3.1, battery: 14, coolant: 85, mafGs: 3.69 },
+        values: { rpm: 700, injLh: 3.1, battery: 14, coolant: 85 },
         trip: { litres: 1.5, km: 20, durationMs: 30 * 60_000 },
         settings: S,
         onReset: () => {},
@@ -111,7 +103,6 @@ describe("FU-401: fuel panel render", () => {
     );
     expect(html).toContain("1.21");
     expect(html).toContain("L/100 km");
-    expect(html).toContain("MAF cross-check");
     expect(html).toContain("7.5"); // trip average
     expect(html).toContain("calculated");
   });

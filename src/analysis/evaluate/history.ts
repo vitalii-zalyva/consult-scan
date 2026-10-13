@@ -1,10 +1,28 @@
 // Spec: specs/005-reference-ranges/spec.md (RR-3xx, RR-4xx)
 import type { Condition } from "@/analysis/conditions";
 import { WARM_COOLANT_C } from "@/analysis/conditions";
-import type { ParamId } from "@/protocol/registers";
+import type { ParamId, ParamValues } from "@/protocol/registers";
 
-import { O2_WINDOW_MS } from "./constants";
+import { O2_WINDOW_MS, STATUS_WINDOW_MS } from "./constants";
 import type { Finding, Sample } from "./types";
+
+/** RR-304: per-param mean over the samples within `windowMs` of the newest one (empty history → {}). */
+export function windowMean(samples: readonly Sample[], windowMs = STATUS_WINDOW_MS): ParamValues {
+  const latest = samples.at(-1);
+  if (!latest) return {};
+  const sum: Record<string, number> = {};
+  const count: Record<string, number> = {};
+  for (let i = samples.length - 1; i >= 0 && samples[i]!.t >= latest.t - windowMs; i--) {
+    for (const [id, v] of Object.entries(samples[i]!.values)) {
+      if (v === undefined) continue;
+      sum[id] = (sum[id] ?? 0) + v;
+      count[id] = (count[id] ?? 0) + 1;
+    }
+  }
+  const out: ParamValues = {};
+  for (const id of Object.keys(sum)) out[id] = sum[id]! / count[id]!;
+  return out;
+}
 
 /**
  * RR-401: front O2 sensor must switch lean<->rich more than 5 times in 10 s

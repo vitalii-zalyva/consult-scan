@@ -82,6 +82,9 @@ export const m: Messages = {
   colTrend: "Trend",
   unverified: "unverified",
   unverifiedTitle: "Scaling not yet confirmed on a VQ30DE ECU — compare the raw bytes",
+  suspect: "suspect",
+  suspectTitle:
+    "Decoding contradicts real data from this ECU; value is not checked against ranges and not used in calculations.",
   rawTitle: "Raw bytes from the ECU",
   reg: "reg",
   on: "ON",
@@ -134,7 +137,6 @@ export const m: Messages = {
     title: "Fuel consumption",
     calculated: "calculated",
     calculatedTitle: "Derived from injector pulse width; see spec 010",
-    mafCheck: (lh, diff) => `MAF cross-check: ${lh} L/h${diff}`,
     implausible: "Idle consumption looks implausible — check the injector settings.",
     duration: (h, min) => (h ? `${h} h ${min} min` : `${min} min`),
     resetTrip: "Reset trip",

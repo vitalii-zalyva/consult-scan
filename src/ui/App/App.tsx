@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { detectCondition } from "@/analysis/conditions";
 import { diagnose } from "@/analysis/diagnosis";
 import type { Sample } from "@/analysis/evaluate";
-import { evaluateAll } from "@/analysis/evaluate";
+import { evaluateAll, StatusFilter, windowMean } from "@/analysis/evaluate";
 import type { FuelSettings, TripState } from "@/analysis/fuel";
 import { addToTrip, calibrate, DEFAULT_FUEL_SETTINGS, emptyTrip } from "@/analysis/fuel";
 import { VQ30DE_RULES } from "@/analysis/reference-ranges";
+import { rulesWithout, suspectParams } from "@/analysis/suspect-registers";
 import { downloadText, timestampForFile, toCsv } from "@/logging/csv";
 import { cylinderStore } from "@/logging/cylinder-store";
 import type { FaultCodeReading } from "@/protocol/fault-codes";
@@ -58,6 +59,7 @@ export function App() {
   const [recording, setRecording] = useState<Sample[] | null>(null);
   const recordingRef = useRef<Sample[] | null>(null);
   const traffic = useRef<string[]>([]);
+  const statusFilter = useRef(new StatusFilter());
   // FU-2xx/3xx: trip and settings live in refs so the sample callback always sees the latest.
   const [fuelSettings, setFuelSettingsState] = useState<FuelSettings>(() =>
     loadJson(FUEL_SETTINGS_KEY, DEFAULT_FUEL_SETTINGS),
@@ -106,6 +108,7 @@ export function App() {
       return;
     }
     traffic.current = [`# ${new Date().toISOString()} ${transport.describe()}`];
+    statusFilter.current = new StatusFilter();
     transport.onTraffic = (dir, bytes) => {
       const line = `${dir === "tx" ? "W" : "R"} ${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
       traffic.current.push(line);
@@ -173,8 +176,18 @@ export function App() {
 
   const values = session?.latest ?? {};
   const isEngine = (session?.unit ?? "engine") === "engine";
-  const condition = detectCondition(values);
-  const evaluations = evaluateAll(values, condition, VQ30DE_RULES);
+  // RR-304: condition and statuses come from the last 3 s mean; the table still shows live values.
+  const judged = session?.history.length ? windowMean(session.history) : values;
+  const condition = detectCondition(judged);
+  // RC-101..105: per-ECU suspect registers get no ranges.
+  const partNumber = session?.partNumber;
+  const suspect = useMemo(() => (isEngine ? suspectParams(partNumber) : new Map()), [partNumber, isEngine]);
+  const rules = useMemo(() => rulesWithout(VQ30DE_RULES, suspect), [suspect]);
+  // RR-305: hold a new status 2 s before showing it.
+  const evaluations = statusFilter.current.update(
+    evaluateAll(judged, condition, rules),
+    session?.history.at(-1)?.t ?? 0,
+  );
   const now = Date.now();
   const history = session?.history.filter((s) => s.t >= now - TREND_WINDOW_MS) ?? [];
   const problems = Object.values(evaluations).filter((e) => e?.status === "bad" || e?.status === "warn").length;
@@ -262,6 +275,8 @@ export function App() {
               evaluations={evaluations}
               condition={condition}
               history={history}
+              rules={rules}
+              suspect={suspect}
             />
           ) : (
             <Intro />

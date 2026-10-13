@@ -23,10 +23,6 @@ export function FuelPanel({ values, trip, settings, onReset, onCalibrate, onSett
   const implausible =
     condition === "warm-idle" &&
     (rate.litresPerHour < IDLE_PLAUSIBLE_LH[0] || rate.litresPerHour > IDLE_PLAUSIBLE_LH[1]);
-  const mafDiff =
-    rate.mafLitresPerHour !== undefined && rate.litresPerHour > 0.05
-      ? ((rate.mafLitresPerHour - rate.litresPerHour) / rate.litresPerHour) * 100
-      : undefined;
   const lh = m.unit["L/h"] ?? "L/h";
   const l100 = m.unit["L/100 km"] ?? "L/100 km";
   const l = m.unit["L"] ?? "L";
@@ -74,14 +70,6 @@ export function FuelPanel({ values, trip, settings, onReset, onCalibrate, onSett
           <span className={cx("unit")}>{l100}</span>
         </div>
       </div>
-      {rate.mafLitresPerHour !== undefined && (
-        <p className={cx("small muted")}>
-          {t.mafCheck(
-            fmt(rate.mafLitresPerHour, 2),
-            mafDiff === undefined ? "" : ` (${mafDiff >= 0 ? "+" : ""}${fmt(mafDiff, 0)} %)`,
-          )}
-        </p>
-      )}
       {implausible && <p className={cx("small warn-text")}>{t.implausible}</p>}
 
       <div className={cx("trip")}>

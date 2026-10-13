@@ -120,9 +120,9 @@ export function engineValues(s: EngineState): ParamValues {
     o2HeaterB2: running ? 1 : 0,
     ignSwitch: 1,
     calLoad: running ? 14 + load * 60 : 0,
-    baseFuel: running ? 1.2 + load * 2.5 : 0,
     rearO2B1: closedLoop ? 0.68 + noise(0.03) : 0.1,
-    mafGs: airGs,
+    // RC-403: % of table maximum; ~272 g/s full scale is PLMS's estimate.
+    mafPct: (airGs / 272) * 100,
   };
   return v;
 }

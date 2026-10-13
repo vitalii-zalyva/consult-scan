@@ -6,6 +6,9 @@
  * and "Basic inspection" (idle speed / ignition timing). Values marked
  * `verified: false` were transcribed from secondary sources and MUST be checked
  * against the FSM for the exact market/year before being trusted.
+ * RR-203: values marked "FSM" match the 1998 US Maxima FSM EC-90/91 (warm, A/C off, N, no load):
+ * http://pdf.textfiles.com/manuals/AUTOMOBILE/NISSAN/maxima/1998/EC.pdf — the user's car is European,
+ * so they stay `verified: false` until an EU EC section is found.
  */
 import type { ReferenceRule } from "./types";
 
@@ -14,7 +17,7 @@ export const VQ30DE_RULES: readonly ReferenceRule[] = [
     param: "rpm",
     when: ["warm-idle"],
     range: { min: 575, max: 800 },
-    note: "Idle 625±50 (M/T) / 700±50 (A/T, N)",
+    note: "Idle 625±50 (M/T) / 700±50 (A/T, N); base idle with TPS unplugged 575±50 / 650±50 (FSM EC-35)",
     verified: false,
   },
 
@@ -30,7 +33,7 @@ export const VQ30DE_RULES: readonly ReferenceRule[] = [
     param: "mafLh",
     when: ["warm-2000"],
     range: { min: 1.5, max: 2.1 },
-    note: "FSM: 2000 rpm 1.5–2.1 V",
+    note: "FSM: 1.5–2.1 V at 2000 rpm (1995) / 2500 rpm (1998)",
     verified: false,
   },
 
@@ -94,7 +97,7 @@ export const VQ30DE_RULES: readonly ReferenceRule[] = [
     param: "timing",
     when: ["warm-idle"],
     range: { min: 13, max: 17 },
-    note: "FSM: 15±2° BTDC at idle",
+    note: "FSM: 15° BTDC at idle (base 15±2° with timing light). CONSULT shows a calculated value — confirm with a timing light",
     verified: false,
   },
   {
@@ -109,16 +112,30 @@ export const VQ30DE_RULES: readonly ReferenceRule[] = [
 
   {
     param: "afAlphaLh",
-    when: ["warm-idle", "warm-2000"],
-    range: { min: 75, max: 125 },
-    note: "FSM: 75–125 % (closed loop)",
+    when: ["warm-2000"],
+    range: { min: 54, max: 155 },
+    note: "FSM: 54–155 % at 2000 rpm",
     verified: false,
   },
   {
     param: "afAlphaRh",
-    when: ["warm-idle", "warm-2000"],
+    when: ["warm-2000"],
+    range: { min: 54, max: 155 },
+    note: "FSM: 54–155 % at 2000 rpm",
+    verified: false,
+  },
+  {
+    param: "afAlphaLh",
+    when: ["warm-idle"],
     range: { min: 75, max: 125 },
-    note: "FSM: 75–125 % (closed loop)",
+    note: "Idle 75–125 % (heuristic, no FSM value)",
+    verified: false,
+  },
+  {
+    param: "afAlphaRh",
+    when: ["warm-idle"],
+    range: { min: 75, max: 125 },
+    note: "Idle 75–125 % (heuristic, no FSM value)",
     verified: false,
   },
   {
@@ -144,40 +161,19 @@ export const VQ30DE_RULES: readonly ReferenceRule[] = [
     verified: false,
   },
 
-  // XD-101 OBD-era items (FSM wording from later VQ-engine manuals; check against the A32 FSM)
-  {
-    param: "baseFuel",
-    when: ["warm-idle"],
-    range: { min: 1.0, max: 1.6 },
-    note: "B/FUEL SCHDL idle ~1.0–1.6 ms",
-    verified: false,
-  },
+  // XD-101 OBD-era items (FSM EC-91, 1998 US A32)
   {
     param: "calLoad",
     when: ["warm-idle"],
     range: { min: 14, max: 33 },
-    note: "CAL/LD VALUE idle 14–33 %",
+    note: "FSM: CAL/LD VALUE idle 14–33 %",
     verified: false,
   },
   {
     param: "calLoad",
     when: ["warm-2000"],
     range: { min: 12, max: 25 },
-    note: "CAL/LD VALUE 2500 rpm 12–25 %",
-    verified: false,
-  },
-  {
-    param: "mafGs",
-    when: ["warm-idle"],
-    range: { min: 2, max: 6 },
-    note: "MASS AIRFLOW idle 2.0–6.0 g/s",
-    verified: false,
-  },
-  {
-    param: "mafGs",
-    when: ["warm-2000"],
-    range: { min: 7, max: 20 },
-    note: "MASS AIRFLOW 2500 rpm 7.0–20.0 g/s",
+    note: "FSM: CAL/LD VALUE 2500 rpm 12–25 %",
     verified: false,
   },
   { param: "o2Rh", when: [], range: { min: 0, max: 1.1 }, note: "Sensor output 0–1 V", verified: false },

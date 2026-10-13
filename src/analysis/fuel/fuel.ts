@@ -6,11 +6,9 @@ import type { ParamValues } from "@/protocol/registers";
 
 import {
   DEFAULT_FUEL_SETTINGS,
-  FUEL_DENSITY_G_PER_L,
   MAX_INTEGRATION_GAP_MS,
   MIN_CALIBRATION_LITRES,
   MIN_SPEED_FOR_DISTANCE,
-  STOICH_AFR,
 } from "./constants";
 import { FuelCalibrationError } from "./errors";
 import type { FuelRate, FuelSettings, TripState } from "./types";
@@ -21,7 +19,7 @@ export function deadTimeMs(batteryV: number | undefined, s: FuelSettings): numbe
   return Math.max(0, s.deadTime14Ms + s.deadTimeSlopeMsPerV * (14 - v));
 }
 
-/** FU-101..106 */
+/** FU-101..104, FU-106 (FU-105 withdrawn by RC-403: no g/s airflow on the A32 ECU). */
 export function fuelRate(v: ParamValues, s: FuelSettings = DEFAULT_FUEL_SETTINGS): FuelRate {
   const rpm = v.rpm ?? 0;
   const pulses = [v.injLh, v.injRh].filter((x): x is number => x !== undefined);
@@ -33,7 +31,6 @@ export function fuelRate(v: ParamValues, s: FuelSettings = DEFAULT_FUEL_SETTINGS
   const speed = v.speed ?? 0;
   const rate: FuelRate = { litresPerHour };
   if (speed > MIN_SPEED_FOR_DISTANCE) rate.litresPer100km = (litresPerHour / speed) * 100;
-  if (v.mafGs !== undefined && rpm > 0) rate.mafLitresPerHour = (v.mafGs / STOICH_AFR / FUEL_DENSITY_G_PER_L) * 3600;
   return rate;
 }
 

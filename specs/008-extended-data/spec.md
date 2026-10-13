@@ -38,6 +38,8 @@ Unknown/undocumented registers may also exist on this ECU. Goal: read **everythi
 | 3A / 4A | Absolute pressure sensor | u16 × 20 mV? (raw shown) |
 | 52 / 53 | FPCM F/P voltage | u16 × 5 mV? (raw shown) |
 
+> **ECU 23710-44U01 (A32):** 0x02/03, 0x34 and 0x38 decoders are replaced by the A32 ones (spec 013 RC-401..403: REF period, CAL/LD fraction, MAF %); 0x28 and 0x30/0x31 are *suspect* (RC-101).
+
 ### Digital bit labels (XD-2xx) — PLMS table, column positions read from the PDF layout
 | ID | Requirement | Acceptance criterion |
 |---|---|---|

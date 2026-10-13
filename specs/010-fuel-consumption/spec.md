@@ -18,7 +18,7 @@ the FSM, so the user can calibrate against real fill-ups.
 | FU-102 | PW = mean of bank 1 and bank 2 pulse when both are available, else bank 1. | Unit test. |
 | FU-103 | Dead time is battery-voltage corrected: `dead(V) = dead14 + slope × (14 − V)`, default `dead14 = 0.7 ms`, `slope = 0.15 ms/V`. | 12 V → 1.0 ms. |
 | FU-104 | Fuel cut (PW ≤ dead time) and engine off give 0. | rpm 0 → 0 L/h. |
-| FU-105 | MAF-based cross-check (only when register 0x38 is available, warm, closed loop): `L/h = g/s ÷ AFR(14.7) ÷ density(745 g/L) × 3600`. Show the difference to the injector value in %. | 3.69 g/s → 1.21 L/h. |
+| ~~FU-105~~ | ~~MAF-based cross-check~~ — **withdrawn** by spec 013 RC-403: the A32 ECU has no g/s airflow register (0x38 is % in 1 % steps). | — |
 | FU-106 | Consumption per distance: `L/100 km = L/h ÷ km/h × 100`, shown only above 5 km/h; below that show L/h only. | 5.75 L/h at 70 km/h → 8.2 L/100 km. |
 
 ### Trip (FU-2xx)

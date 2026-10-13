@@ -16,8 +16,10 @@ export interface ParamDef {
   group: ParamGroup;
   /** Register addresses, MSB first for 16-bit values. */
   registers: readonly number[];
-  /** Must be linear in the raw value (the simulator inverts it). */
+  /** Linear in the raw value unless `encode` is given (the simulator inverts it). */
   decode: (bytes: readonly number[]) => number;
+  /** Inverse of a non-linear `decode`, used by the simulator (RC-401, RC-402). */
+  encode?: (value: number) => number[];
   digits: number;
   kind?: ParamKind;
   /** kind "bits": label per bit number (index 0 = LSB); null = unknown. */

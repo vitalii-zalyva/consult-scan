@@ -20,7 +20,7 @@ describe("CP-1xx/2xx/3xx/4xx: replay of a real ECU log (OpenConsult log_01)", ()
     expect(partNumber).toBe("23710-AA502 (ROM 1480)");
 
     const codes = await client.readFaultCodes();
-    expect(codes).toEqual([expect.objectContaining({ code: 51, startsSinceObserved: 11 })]);
+    expect(codes).toEqual([expect.objectContaining({ code: 33, startsSinceObserved: 11 })]); // FC-101: byte 0x33 → code 33
 
     const params = [param("rpm"), param("speed"), param("battery")];
     const frames: Array<Record<string, number | undefined>> = [];
@@ -48,11 +48,34 @@ describe("CP-202: part number formatting", () => {
 });
 
 describe("CP-301: fault code parsing", () => {
-  it("drops code 55 (no malfunction)", () => {
-    expect(parseFaultCodes(Uint8Array.of(55, 0))).toEqual([]);
+  it("FC-101: drops 0x55 (code 55, no malfunction)", () => {
+    expect(parseFaultCodes(Uint8Array.of(0x55, 0))).toEqual([]);
   });
-  it("reports unknown codes with their raw value", () => {
-    expect(parseFaultCodes(Uint8Array.of(0xfa, 2))[0]).toMatchObject({ code: 250, startsSinceObserved: 2 });
+  it("FC-101: reads the byte as two hex digits — A32 car byte 0x12 is code 12 (MAF)", () => {
+    expect(parseFaultCodes(Uint8Array.of(0x12, 6))[0]).toMatchObject({
+      code: 12,
+      name: "Mass air flow sensor circuit",
+      startsSinceObserved: 6,
+    });
+    expect(parseFaultCodes(Uint8Array.of(0x34, 3))[0]).toMatchObject({ code: 34 });
+  });
+  it("FC-103/105: non-digit bytes fall back to decimal and keep the raw value", () => {
+    expect(parseFaultCodes(Uint8Array.of(0xfa, 2))[0]).toMatchObject({
+      code: 250,
+      name: "Unknown code 250 (raw 0xfa)",
+      startsSinceObserved: 2,
+    });
+    expect(parseFaultCodes(Uint8Array.of(0x6f, 1))[0]).toMatchObject({ code: 111 });
+  });
+  it("FC-105: tens 10–15 in the high nibble — 0xA1 is code 101 (left O2 heater)", () => {
+    expect(parseFaultCodes(Uint8Array.of(0xa1, 0))[0]).toMatchObject({ code: 101 });
+  });
+  it("FC-106: O2 and closed-loop names follow the FSM DTC index", () => {
+    expect(parseFaultCodes(Uint8Array.of(0x33, 0, 0x53, 0, 0x37, 0))).toMatchObject([
+      { name: expect.stringContaining("left bank") },
+      { name: expect.stringContaining("right bank") },
+      { name: expect.stringContaining("Closed loop") },
+    ]);
   });
   it("rejects odd-length frames", () => {
     expect(() => parseFaultCodes(Uint8Array.of(1))).toThrow();

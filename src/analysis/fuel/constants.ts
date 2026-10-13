@@ -9,8 +9,6 @@ export const DEFAULT_FUEL_SETTINGS: FuelSettings = {
   cylinders: 6,
 };
 
-export const STOICH_AFR = 14.7;
-export const FUEL_DENSITY_G_PER_L = 745;
 /** FU-106: below this speed L/100 km is meaningless. */
 export const MIN_SPEED_FOR_DISTANCE = 5;
 /** FU-201: longer gaps between samples are not integrated. */

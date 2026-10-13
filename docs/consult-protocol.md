@@ -23,7 +23,7 @@ host: 30                  ECU: [frames in flight] CF stop
 | `FF FF EF` | `10` | init / re-init |
 | `5A rr` | `A5 rr` | add register `rr`; up to 20 per stream; `FE` if unsupported |
 | `D0` | `2F` | ECU part number: 22 bytes, bytes 17–21 ASCII suffix of `23710-xxxxx` |
-| `D1` | `2E` | fault codes: pairs `[code, starts-since-seen]`, code = decimal of byte, `55` = none |
+| `D1` | `2E` | fault codes: pairs `[code, starts-since-seen]`, code = byte read as two hex digits (`0x12` → 12, FC-101), `55` = none |
 | `C1` | `3E` | clear fault codes |
 | `F0` | — | start sending |
 | `30` | `CF` | stop |

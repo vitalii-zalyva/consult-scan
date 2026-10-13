@@ -13,28 +13,31 @@ FSM section EC lists "CONSULT reference values in data monitor mode". They depen
 ### Condition detection (RR-1xx)
 | ID | Requirement | Acceptance criterion |
 |---|---|---|
-| RR-101 | Classify each sample: engine-off (<50 rpm), cranking (<400), driving (>3 km/h), cold (coolant <70 °C), warm-idle (<1000 rpm), warm-2000 (1800–2200 rpm), warm-other. | `test/analysis.test.ts` table. |
+| RR-101 | Classify each sample: engine-off (<50 rpm), cranking (<400), driving (>3 km/h), cold (coolant <70 °C), warm-idle (RR-102), warm-2000 (1800–2200 rpm), warm-other. | `test/analysis.test.ts` table. |
+| RR-102 | Warm idle = throttle closed (TPS ≤ 0.65 V, FSM closed-throttle range) and < 1500 rpm; without a TPS value, < 1200 rpm. *Revised 2026-10-13 (was < 1000 rpm): the A32 idles at 925–1025 rpm and flipped condition 130 times in 75 s.* | `a32-vq30de-2026-10-13-warm-idle-2.csv`: every sample is warm idle. |
 
 ### Range table (RR-2xx)
 | ID | Requirement | Acceptance criterion |
 |---|---|---|
 | RR-201 | Each rule: param, conditions (empty = always), min/max, FSM-worded note, `verified` flag. | `VQ30DE_RULES`. |
 | RR-202 | Initial VQ30DE table (below) MUST be shipped and marked unverified. | — |
+| RR-203 | Rules MUST match the closest available FSM: 1998 US Maxima EC-90/91 "CONSULT Reference Value in Data Monitor Mode" (http://pdf.textfiles.com/manuals/AUTOMOBILE/NISSAN/maxima/1998/EC.pdf), checked page by page on 2026-10-13. Notes say "FSM" only for values from that table; others say "heuristic". All stay `verified: false` — the car is European and no EU EC section was found. | Table below. |
 
 | Param | Condition | Range | Note / source |
 |---|---|---|---|
 | rpm | warm idle | 575–800 | Idle 625±50 M/T, 700±50 A/T (N) — FSM EC basic inspection |
 | MAF | key on, engine off | 0.2–0.5 V | |
 | MAF | warm idle | 1.0–1.7 V | FSM ref. values |
-| MAF | 2000 rpm | 1.5–2.1 V | FSM ref. values |
+| MAF | 2000 rpm | 1.5–2.1 V | FSM (1995: 2000 rpm; 1998: 2500 rpm) |
 | Coolant | always / warm | −40–105 / 70–100 °C | overheat guard / "after warm-up" |
 | Battery | engine off / running | 11.8–13.0 / 13.2–14.8 V | FSM lists 11–14 V; charging norm used |
 | TPS | closed throttle | 0.35–0.65 V | FSM ref. values |
 | TPS | always | 0.2–4.8 V | circuit sanity |
 | Injection pulse | warm idle / 2000 rpm | 2.4–3.2 / 1.9–2.8 ms | FSM ref. values |
-| Ignition timing | warm idle / 2000 rpm | 13–17 / 25–45 ° BTDC | 15±2° idle |
-| IACV-AAC | warm idle | 20–40 % | FSM ref. values |
-| A/F alpha | warm idle, 2000 rpm | 75–125 % | FSM ref. values |
+| Ignition timing | warm idle / 2000 rpm | 13–17 / 25–45 ° BTDC | FSM: 15° idle, >25° at 2000 rpm. CONSULT IGN TIMING is a calculated value; FSM requires a timing-light check (base 15±2°, TPS unplugged, EC-35) |
+| IACV-AAC | warm idle | 20–40 % | heuristic — FSM gives 2–10 *steps*; register 0x17 is not answered by the A32 ECU |
+| A/F alpha | 2000 rpm / warm idle | 54–155 % / 75–125 % | FSM 54–155 % at 2000 rpm / idle: heuristic (no FSM value) |
+| CAL/LD | warm idle / 2000 rpm | 14–33 / 12–25 % | FSM (12–25 % is given at 2500 rpm) |
 | Self-learn | always | 80–120 % | heuristic |
 | O2 sensors | always | 0–1.1 V | sensor range |
 
@@ -44,6 +47,8 @@ FSM section EC lists "CONSULT reference values in data monitor mode". They depen
 | RR-301 | Status per value: `ok` inside every applicable range, `na` when no rule applies. | Tests. |
 | RR-302 | Outside by ≤10 % of the range width → `warn`; further → `bad`. | Timing 17.3° at idle → warn; 5° → bad. |
 | RR-303 | Worst status across applicable rules wins; the failing rule's note is the explanation. | — |
+| RR-304 | The live view MUST judge condition and statuses on the per-param mean of the last 3 s of samples; the displayed value stays the latest sample. | `windowMean` test. |
+| RR-305 | A changed status MUST be shown only after it has held for 2 s (hysteresis in time); the filter resets on reconnect. | Same recording: raw judging flips > 20 times per param, with RR-304/305 ≤ 2. |
 
 ### History checks (RR-4xx)
 
@@ -55,7 +60,7 @@ FSM section EC lists "CONSULT reference values in data monitor mode". They depen
 | RR-402 | A/F alpha >115 % with self-learn >110 % → "running lean" finding; <85 % with <90 % → "running rich". | Lean test. |
 
 ## Open questions
-- [ ] Transcribe the actual FSM EC table for the user's market/year (US vs EU A32 differ) → user to provide FSM pages or a photo; then set `verified: true` per rule.
+- [ ] Transcribe the actual FSM EC table for the user's market/year → market is **European** (Maxima QX A32, 1998; user, 2026-10-13); source the EU EC section, then set `verified: true` per rule.
 - [ ] M/T or A/T? Narrows the idle-speed rule.
 - [ ] Is "cycles" (our interpretation) or "transitions" what the FSM means by "changes more than 5 times"?
 
@@ -65,4 +70,6 @@ FSM section EC lists "CONSULT reference values in data monitor mode". They depen
 | RR-1xx | `src/analysis/conditions/` | "RR-1xx: condition detection" |
 | RR-2xx | `src/analysis/reference-ranges/` | "RR-3xx" uses the table |
 | RR-3xx | `src/analysis/evaluate/ › evaluateValue, rulesFor` | "RR-3xx: range evaluation" |
+| RR-102 | `src/analysis/conditions/ › detectCondition` | `test/statusStability.test.ts › "RR-102…"` |
+| RR-304, RR-305 | `src/analysis/evaluate/ › windowMean, StatusFilter`, `src/ui/App/` | `test/statusStability.test.ts › "RR-304…"`, `"RR-305…"` |
 | RR-4xx | `evaluate.ts › historyFindings` | "RR-401", "RR-402" |

@@ -28,7 +28,13 @@ export const PARAMS: readonly ParamDef[] = [
     unit: "rpm",
     group: "engine",
     registers: [0x02, 0x03],
-    decode: (b) => u16(b) * 8,
+    // RC-401: period, not speed — PLMS "1999 Nissan Maxima A32 VQ30DE" register list; matches POS rpm on the car (2026-10-13).
+    decode: (b) => (u16(b) ? 2_494_000 / u16(b) : 0),
+    encode: (v) => {
+      const raw = v > 0 ? Math.min(0xffff, Math.round(2_494_000 / v)) : 0;
+      return [raw >> 8, raw & 0xff];
+    },
+    verified: true,
   }),
   def({
     id: "mafLh",
@@ -373,24 +379,20 @@ export const PARAMS: readonly ParamDef[] = [
     decode: u8,
     kind: "onoff",
   }),
+  // RC-402: 0x34 is the fraction of CAL/LD (PLMS A32 list), not B/FUEL SCHDL; smooth 19.1–19.5 % on the car.
   def({
     id: "calLoad",
     label: "Calculated load",
     fsmName: "CAL/LD VALUE",
     unit: "%",
     group: "engine",
-    registers: [0x33],
-    decode: u8,
-  }),
-  def({
-    id: "baseFuel",
-    label: "Base fuel schedule",
-    fsmName: "B/FUEL SCHDL",
-    unit: "ms",
-    group: "air-fuel",
-    registers: [0x34],
-    decode: (b) => u8(b) / 100,
-    digits: 2,
+    registers: [0x33, 0x34],
+    decode: (b) => (b[0] ?? 0) + (b[1] ?? 0) / 255,
+    digits: 1,
+    encode: (v) => {
+      const whole = Math.max(0, Math.min(255, Math.floor(v)));
+      return [whole, Math.min(255, Math.round((v - whole) * 255))];
+    },
   }),
   def({
     id: "rearO2B1",
@@ -422,11 +424,12 @@ export const PARAMS: readonly ParamDef[] = [
     decode: (b) => u8(b) * 0.02,
     digits: 2,
   }),
+  // RC-403: percent of the ECU's airflow table maximum (PLMS A32 list), 1 % steps; no g/s scale is documented.
   def({
-    id: "mafGs",
-    label: "Mass air flow",
+    id: "mafPct",
+    label: "Mass air flow (% of max)",
     fsmName: "MASS AIRFLOW",
-    unit: "g/s",
+    unit: "%",
     group: "air-fuel",
     registers: [0x38],
     decode: u8,

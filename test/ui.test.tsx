@@ -31,7 +31,7 @@ describe("LD-2xx: render smoke tests", () => {
     );
     const timingRow = html.match(/<tr class="st-(\w+)"(?:(?!<\/tr>).)*Ignition timing/s);
     expect(timingRow?.[1]).toBe("bad");
-    expect(html).toContain("15±2° BTDC");
+    expect(html).toContain("15° BTDC at idle");
     expect(html).toContain("0x08");
     expect(html).toContain("69"); // XD-102 raw byte
     expect(html).toContain("Power steering switch"); // XD-201 bit label (bit 3 set)

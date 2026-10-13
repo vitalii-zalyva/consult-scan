@@ -17,8 +17,6 @@ export interface FuelRate {
   litresPerHour: number;
   /** L/100 km when moving, else undefined. */
   litresPer100km?: number;
-  /** FU-105: MAF-based flow, L/h, when register 0x38 is available. */
-  mafLitresPerHour?: number;
 }
 
 export interface TripState {
