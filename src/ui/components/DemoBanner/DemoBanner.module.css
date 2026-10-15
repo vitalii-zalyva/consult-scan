@@ -1,0 +1,17 @@
+.demo {
+  border-left: 4px solid var(--accent);
+}
+.demo h2 {
+  font-size: 16px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+}
+.demo p {
+  line-height: 1.55;
+  max-width: 70ch;
+}
+.demo :global(.primary) {
+  font-size: 15px;
+  padding: 8px 18px;
+}

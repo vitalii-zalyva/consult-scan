@@ -14,6 +14,15 @@ export const m: Messages = {
   disconnect: "Disconnect",
   noWebSerial:
     "This browser has no Web Serial. Use Chrome or Edge on macOS to talk to the cable; the simulator works anywhere.",
+  demo: {
+    title: "Nissan Consult-I diagnostics in the browser",
+    about:
+      "A pet project: a diagnostic tool for my 1998 Nissan Maxima (A32, VQ30DE). It speaks Nissan's Consult-I protocol byte by byte over a USB cable, and it has been tested on the real car: live sensor data, fault codes and a cylinder power balance test.",
+    simulated:
+      "No cable? Start the demo: it runs against a byte-accurate simulated ECU. Switch scenarios and inject faults to see the checks react.",
+    start: "Start demo",
+    cable: "Have a Consult cable? Choose USB cable in the top bar and press Connect (Chrome or Edge, Web Serial).",
+  },
   state: {
     disconnected: "disconnected",
     connecting: "connecting",

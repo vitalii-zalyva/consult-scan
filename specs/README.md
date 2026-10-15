@@ -18,6 +18,7 @@ Workflow: `.claude/skills/spec-driven-development/SKILL.md`. Statuses: draft →
 | 011 | [Possible problems (diagnosis hints)](011-diagnosis/spec.md) | DX | implemented (thresholds untuned) |
 | 012 | [Cylinder health: power balance + compression log](012-cylinder-health/spec.md) | CY | implemented — first car run must be the dry run |
 | 013 | [A32 register map corrections (first car session)](013-a32-register-corrections/spec.md) | RC | implemented |
+| 014 | [Public demo build (Vercel)](014-public-demo/spec.md) | DM | implemented |
 
 Nothing is `verified-on-car` yet. First real-car data (ECU 23710-44U01, 2026-10-13, engine off + warm idle) is analysed in spec 013.
 

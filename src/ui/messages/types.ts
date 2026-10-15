@@ -15,6 +15,8 @@ export interface Messages {
   connect: string;
   disconnect: string;
   noWebSerial: string;
+  // public demo (DM-104, DM-105)
+  demo: { title: string; about: string; simulated: string; start: string; cable: string };
   state: Record<SessionState, string>;
   condition: Record<Condition, string>;
   ecu: (partNumber: string) => string;

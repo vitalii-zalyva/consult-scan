@@ -8,6 +8,7 @@ import type { FuelSettings, TripState } from "@/analysis/fuel";
 import { addToTrip, calibrate, DEFAULT_FUEL_SETTINGS, emptyTrip } from "@/analysis/fuel";
 import { VQ30DE_RULES } from "@/analysis/reference-ranges";
 import { rulesWithout, suspectParams } from "@/analysis/suspect-registers";
+import { PUBLIC_DEMO } from "@/config";
 import { downloadText, timestampForFile, toCsv } from "@/logging/csv";
 import { cylinderStore } from "@/logging/cylinder-store";
 import type { FaultCodeReading } from "@/protocol/fault-codes";
@@ -16,13 +17,14 @@ import { ConsultSession } from "@/protocol/session";
 import type { UnitId } from "@/protocol/units";
 import { UNITS } from "@/protocol/units";
 import { SimulatorTransport } from "@/transport/simulator";
-import type { Transport } from "@/transport/types";
+import type { Transport, TransportKind } from "@/transport/types";
 import { WebSerialTransport } from "@/transport/web-serial";
 import { WebUsbFtdiTransport } from "@/transport/webusb-ftdi";
 import {
   BitsPanel,
   CompressionPanel,
   CoveragePanel,
+  DemoBanner,
   DiagnosisPanel,
   FaultCodesPanel,
   FuelPanel,
@@ -45,12 +47,14 @@ import {
 } from "./constants";
 import { cylinderEvidence } from "./cylinderEvidence";
 import { loadJson, restoreDeepScan, saveJson } from "./storage";
-import type { Source } from "./types";
 
 const cx = createCx(styles);
 
-export function App() {
-  const [source, setSource] = useState<Source>(WebSerialTransport.isSupported() ? "web-serial" : "simulator");
+export function App({ demo = PUBLIC_DEMO }: { demo?: boolean }) {
+  // DM-103: the public demo starts on the simulator; the cable stays selectable.
+  const [source, setSource] = useState<TransportKind>(
+    !demo && WebSerialTransport.isSupported() ? "web-serial" : "simulator",
+  );
   const [session, setSession] = useState<ConsultSession | null>(null);
   const [state, setState] = useState<SessionState>("disconnected");
   const [message, setMessage] = useState("");
@@ -93,14 +97,14 @@ export function App() {
     return () => clearInterval(id);
   }, [state]);
 
-  const connect = async () => {
+  const connect = async (kind: TransportKind = source) => {
     setMessage("");
     let transport: Transport & { describe(): string };
     try {
       transport =
-        source === "simulator"
+        kind === "simulator"
           ? new SimulatorTransport()
-          : source === "web-serial"
+          : kind === "web-serial"
             ? await WebSerialTransport.request()
             : await WebUsbFtdiTransport.request();
     } catch (err) {
@@ -141,6 +145,11 @@ export function App() {
     } catch (err) {
       setMessage(describeError(err));
     }
+  };
+
+  const startDemo = () => {
+    setSource("simulator");
+    void connect("simulator");
   };
 
   const disconnect = async () => {
@@ -211,7 +220,7 @@ export function App() {
             name="source"
             aria-label={m.source}
             value={source}
-            onChange={(e) => setSource(e.target.value as Source)}
+            onChange={(e) => setSource(e.target.value as TransportKind)}
             disabled={!!session}
           >
             <option value="web-serial" disabled={!WebSerialTransport.isSupported()}>
@@ -278,6 +287,11 @@ export function App() {
               rules={rules}
               suspect={suspect}
             />
+          ) : demo && !session ? (
+            <>
+              <DemoBanner onStart={startDemo} />
+              <Intro />
+            </>
           ) : (
             <Intro />
           )}

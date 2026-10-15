@@ -1,6 +1,7 @@
 export * from "./BitsPanel";
 export * from "./CompressionPanel";
 export * from "./CoveragePanel";
+export * from "./DemoBanner";
 export * from "./DiagnosisPanel";
 export * from "./FaultCodesPanel";
 export * from "./FuelPanel";
