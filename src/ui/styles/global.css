@@ -12,6 +12,7 @@
   --warn-bg: #fdf4e3;
   --bad-bg: #fdeaea;
   --band: rgba(31, 138, 76, 0.12);
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2369707d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   font-size: 14px;
@@ -28,6 +29,7 @@
     --warn-bg: #2e2412;
     --bad-bg: #331616;
     --band: rgba(72, 187, 120, 0.15);
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238b93a1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
 
@@ -49,6 +51,15 @@ select {
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+}
+/* Own chevron instead of the native arrow, with room so it never touches the edge. */
+select {
+  appearance: none;
+  background-image: var(--chevron);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 11px 7px;
+  padding-right: 30px;
 }
 button:disabled,
 select:disabled {
@@ -280,7 +291,12 @@ code {
   padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: var(--surface);
+  background-color: var(--surface);
   color: var(--text);
   min-width: 0;
+}
+.comp-form select,
+.pb-controls select {
+  padding-right: 26px;
+  background-position: right 8px center;
 }
